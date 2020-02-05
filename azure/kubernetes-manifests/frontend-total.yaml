@@ -1,0 +1,77 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: acmefit
+    service: frontend
+spec:
+  ports:
+    - name: http-frontend
+      protocol: TCP
+      port: 80
+      targetPort: 3000
+#      nodePort: 30430
+  selector:
+    app: acmefit
+    service: frontend
+  type: LoadBalancer
+---
+apiVersion: apps/v1 # for versions before 1.8.0 use apps/v1beta1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: acmefit
+    service: frontend
+spec:
+  selector:
+    matchLabels:
+      app: acmefit
+      service: frontend
+  strategy:
+    type: Recreate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: acmefit
+        service: frontend
+    spec:
+      containers:
+      - image: gcr.io/vmwarecloudadvocacy/acmeshop-front-end:azure-func
+        name: frontend
+        env:
+        - name: FRONTEND_PORT
+          value: '3000'
+        - name: USERS_HOST
+          value: 'users'
+        - name: CATALOG_HOST
+          value: 'catalog'
+        - name: ORDER_HOST
+          value: 'order'
+        - name: CART_DNS
+          value: 'cloudjourneycart.azurewebsites.net'
+        - name: USERS_PORT
+          value: '8083'
+        - name: CATALOG_PORT
+          value: '8082'
+        - name: ORDER_PORT
+          value: '6000'
+        - name: JAEGER_AGENT_HOST
+          value: 'jaeger'
+        - name: JAEGER_AGENT_PORT
+          value: '6832'
+        - name: ADD_ITEM_CODE
+          value: ''
+        - name: GET_CART_ITEMS_CODE
+          value: ''
+        - name: GET_CART_TOTAL_CODE
+          value: ''
+        - name: MODIFY_CART_ITEM_CODE
+          value: ''
+        - name: CLEAR_CART_CODE
+          value: ''
+        ports:
+        - containerPort: 3000
+          name: frontend
